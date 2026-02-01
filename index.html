@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Be My Valentine ❤️</title>
+
+<style>
+    body {
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #ff4b7d, #ff9a9e);
+        font-family: 'Segoe UI', sans-serif;
+        overflow: hidden;
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(12px);
+        padding: 40px;
+        border-radius: 20px;
+        text-align: center;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.25);
+        z-index: 2;
+        min-width: 300px;
+    }
+
+    h1 {
+        color: #fff;
+        margin-bottom: 30px;
+        font-size: 2.2rem;
+    }
+
+    .actions {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 30px;
+    }
+
+    button {
+        padding: 14px 34px;
+        font-size: 1.2rem;
+        border-radius: 30px;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.25s ease;
+        user-select: none;
+    }
+
+    #yes {
+        background: #ff1744;
+        color: #fff;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+    }
+
+    #no {
+        background: #fff;
+        color: #ff1744;
+        position: relative;
+    }
+
+    #celebrate {
+        margin-top: 20px;
+        background: #ff1744;
+        color: #fff;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        display: none;
+    }
+
+    canvas {
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        z-index: 10;
+    }
+</style>
+</head>
+
+<body>
+
+<canvas id="fireworks"></canvas>
+
+<div class="card" id="card">
+    <h1 id="title">Will you be my Valentine? ❤️</h1>
+
+    <div class="actions" id="actions">
+        <button id="yes">Yes 💖</button>
+        <button id="no">No 💔</button>
+    </div>
+
+    <button id="celebrate">🎉 Celebrate</button>
+</div>
+
+<script>
+/* ---------------- No button behavior ---------------- */
+const noBtn = document.getElementById('no');
+
+noBtn.addEventListener('mouseenter', () => {
+    const rect = noBtn.getBoundingClientRect();
+
+    // small playful movement range
+    const maxX = 120;
+    const maxY = 80;
+
+    let moveX = (Math.random() - 0.5) * 2 * maxX;
+    let moveY = (Math.random() - 0.5) * 2 * maxY;
+
+    // Prevent going outside viewport
+    const futureLeft = rect.left + moveX;
+    const futureTop = rect.top + moveY;
+
+    if (futureLeft < 10 || futureLeft + rect.width > window.innerWidth - 10) {
+        moveX *= -1;
+    }
+
+    if (futureTop < 10 || futureTop + rect.height > window.innerHeight - 10) {
+        moveY *= -1;
+    }
+
+    noBtn.style.transform = `translate(${moveX}px, ${moveY}px)`;
+});
+
+// Prevent clicking No
+noBtn.addEventListener('click', e => e.preventDefault());
+noBtn.addEventListener('touchstart', e => {
+    e.preventDefault();
+    noBtn.dispatchEvent(new Event('mouseenter'));
+});
+
+/* ---------------- Fireworks ---------------- */
+const canvas = document.getElementById('fireworks');
+const ctx = canvas.getContext('2d');
+let particles = [];
+let active = false;
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+function createFirework(x, y) {
+    const colors = ['#ff1744', '#ffd700', '#ff69b4', '#ffffff'];
+    for (let i = 0; i < 40; i++) {
+        particles.push({
+            x, y,
+            r: Math.random() * 3 + 1,
+            c: colors[Math.floor(Math.random() * colors.length)],
+            vx: (Math.random() - 0.5) * 6,
+            vy: (Math.random() - 0.5) * 6,
+            life: 60
+        });
+    }
+}
+
+function animate() {
+    if (!active) return;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach((p, i) => {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = p.c;
+        ctx.fill();
+
+        if (p.life <= 0) particles.splice(i, 1);
+    });
+
+    if (particles.length) requestAnimationFrame(animate);
+}
+
+function startFireworks() {
+    active = true;
+    const burst = setInterval(() => {
+        createFirework(
+            Math.random() * canvas.width,
+            Math.random() * canvas.height * 0.7
+        );
+        animate();
+    }, 300);
+
+    setTimeout(() => {
+        clearInterval(burst);
+        active = false;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }, 4000);
+}
+
+/* ---------------- Yes & Celebrate ---------------- */
+const yesBtn = document.getElementById('yes');
+const celebrateBtn = document.getElementById('celebrate');
+const title = document.getElementById('title');
+const actions = document.getElementById('actions');
+
+yesBtn.addEventListener('click', () => {
+    startFireworks();
+    title.textContent = 'Yayyyy!! I Love You 💘😍';
+    actions.style.display = 'none';
+    celebrateBtn.style.display = 'inline-block';
+});
+
+celebrateBtn.addEventListener('click', () => {
+    startFireworks();
+});
+</script>
+
+</body>
+</html>
